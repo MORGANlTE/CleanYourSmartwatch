@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "version": "catalog-2",
+  "tested_firmware": [],
+  "profiles": {
+    "conservative": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
+    "balanced": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
+    "aggressive": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
+    "custom": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"]
+  },
+  "packages": {
+    "com.microsoft.office.outlook": {
+      "purpose": "Optional Outlook mail/calendar application",
+      "category": "Optional application",
+      "confidence": "App identity only; firmware dependencies require review",
+      "evidence": "https://play.google.com/store/apps/details?id=com.microsoft.office.outlook",
+      "dependencies": "May supply mail/calendar notifications, tiles and complications",
+      "consequences": "Outlook mail/calendar functionality stops; system notification services remain protected",
+      "reversibility": "Exact prior enabled state; only separately installed versions are eligible",
+      "tested_firmware": []
+    },
+    "com.samsung.android.gallery.watch": {
+      "purpose": "Optional Samsung watch Gallery application",
+      "category": "Optional application candidate",
+      "confidence": "Third-party list and local metadata only; preloaded version protected",
+      "evidence": "https://github.com/doubleangels/galaxywatch4/blob/main/remove_bloat.sh",
+      "dependencies": "Photo viewing/sync and shortcuts; preloaded dependencies not verified",
+      "consequences": "Gallery viewing and photo synchronization may stop",
+      "reversibility": "Exact prior enabled state if eligible; no media-provider changes permitted",
+      "tested_firmware": []
+    },
+    "com.samsung.android.wear.voicerecorder": {
+      "purpose": "Optional Samsung watch Voice Recorder application",
+      "category": "Optional application candidate",
+      "confidence": "Third-party list and local metadata only; preloaded version protected",
+      "evidence": "https://github.com/doubleangels/galaxywatch4/blob/main/remove_bloat.sh",
+      "dependencies": "Recording storage and phone synchronization; export recordings first",
+      "consequences": "Recording, playback and recorder sync become unavailable",
+      "reversibility": "Exact prior enabled state if eligible; app data is not intentionally deleted",
+      "tested_firmware": []
+    },
+    "com.samsung.android.app.reminder": {
+      "purpose": "Optional Samsung Reminder application",
+      "category": "Optional application candidate",
+      "confidence": "Third-party list and local metadata only; preloaded version protected",
+      "evidence": "https://github.com/doubleangels/galaxywatch4/blob/main/remove_bloat.sh",
+      "dependencies": "Reminder notifications, tiles and companion sync; review integrations",
+      "consequences": "Reminders and related notifications stop",
+      "reversibility": "Exact prior enabled state if eligible; alarms and time services stay protected",
+      "tested_firmware": []
+    },
+    "com.samsung.sree": {
+      "purpose": "Samsung Global Goals candidate",
+      "category": "Optional application candidate",
+      "confidence": "Third-party list and local metadata only; preloaded version protected",
+      "evidence": "https://github.com/doubleangels/galaxywatch4/blob/main/remove_bloat.sh",
+      "dependencies": "May integrate with optional watch faces; do not affect active watch face",
+      "consequences": "Goals content may become unavailable; do not touch companion watch-face packages",
+      "reversibility": "Exact prior enabled state if eligible; no wildcard matches",
+      "tested_firmware": []
+    },
+    "com.spotify.music": {
+      "purpose": "Optional Spotify music application",
+      "category": "Optional application",
+      "confidence": "medium: app identity; dependency safety requires local review",
+      "evidence": "https://play.google.com/store/apps/details?id=com.spotify.music",
+      "dependencies": "May supply music tiles, complications and offline playback; review on this firmware",
+      "consequences": "Spotify playback, downloads, tiles and complications may become unavailable",
+      "reversibility": "Restore previous package enabled state; app data is not intentionally deleted",
+      "tested_firmware": []
+    },
+    "com.strava": {
+      "purpose": "Optional Strava activity application",
+      "category": "Optional application",
+      "confidence": "medium: app identity; dependency safety requires local review",
+      "evidence": "https://play.google.com/store/apps/details?id=com.strava",
+      "dependencies": "May supply workout shortcuts, tiles and complications; review on this firmware",
+      "consequences": "Strava recording and synchronization stop; sync activities before disabling",
+      "reversibility": "Restore previous package enabled state; app data is not intentionally deleted",
+      "tested_firmware": []
+    }
+  }
+}

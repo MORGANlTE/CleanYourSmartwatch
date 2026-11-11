@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+# Private device state, reports, addresses, and credentials must never be committed.
+.cleanmywatch/
+backups/
+reports/
+shots/
+*.local.*
+.env
+.env.*
+platform-tools/
+*.log
+*.pcap
+*.pcapng
+adbkey*
+installed_packages*.txt
+disabled_packages*.txt
+.restore_candidates.txt
+.bg_restore_candidates.txt
+restore_watch.sh
+restore_background.sh
