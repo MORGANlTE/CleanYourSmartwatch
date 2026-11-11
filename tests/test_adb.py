@@ -42,6 +42,15 @@ def test_subprocess_argv_no_host_shell(monkeypatch):
         ("User 0: installed=false enabled=1", None),
         ("User 0: installed=true enabled=10", None),
         ("error: synthetic", None),
+        (
+            "Resolver metadata mentions User 0: unrelated\n  User 0: installed=true enabled=0\n  User 0:\n",
+            0,
+        ),
+        ("User 0: installed=true enabled=0\nUser 0: installed=true enabled=1", None),
+        (
+            "Packages:\n  User 0: installed=true enabled=1\nHidden system packages:\n  User 0: installed=true enabled=0",
+            1,
+        ),
     ],
 )
 def test_strict_user_zero_state_parser(monkeypatch, text, expected):

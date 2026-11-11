@@ -49,3 +49,7 @@ Older Wear OS firmware may expose Debug over Wi-Fi with an address instead of pa
 - After finishing: turn Wireless debugging and ADB debugging off, forget/revoke PC authorization, and confirm settings after a normal reboot. `adb disconnect` affects the client only.
 
 References: [Samsung](https://developer.samsung.com/health/sensor/guide/connect-watch.html), [Wear OS Wi-Fi debugging](https://developer.android.com/training/wearables/get-started/debug-wifi), [ADB](https://developer.android.com/tools/adb).
+
+## Optional privacy controls
+
+After auditing, review [privacy controls](PRIVACY-CONTROLS.md) for explicit app choices, experimental system-package opt-in and AdGuard DNS setup/restore. Keep Health and core connectivity enabled. A Samsung backup is recommended and required by default; an owner may explicitly choose `apply --skip-backup` with its honest typed waiver.

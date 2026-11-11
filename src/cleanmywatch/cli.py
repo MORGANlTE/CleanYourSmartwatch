@@ -141,23 +141,40 @@ def plan(
     device: Device,
     profile: str = "conservative",
     package: Annotated[list[str] | None, typer.Option("--package", "-p")] = None,
+    experimental_system: bool = False,
 ):
     """Generate a dry-run plan. Every package requires explicit selection."""
-    proposed = make_plan(ADB(device), profile, package or [])
+    proposed = make_plan(ADB(device), profile, package or [], experimental_system)
     preview(proposed)
     write(proposed, "plans")
     console.print("No device changes. Balanced/aggressive add no unverified analytics packages.")
 
 
 @app.command()
-def apply(device: Device, plan_file: Path):
+def apply(device: Device, plan_file: Path, skip_backup: bool = False):
     """Preview again, verify backup, approve EACH package, journal then disable."""
     proposed = read(plan_file)
     from .engine import validate_changes
 
     validate_changes(proposed)
     preview(proposed)
-    path = execute(ADB(device), STATE, proposed, approve_change, backup_confirm)
+    if proposed.get("experimental_system"):
+        console.print(
+            "Experimental system changes: firmware safety and essential functions are NOT validated."
+        )
+
+    def confirm_backup():
+        if not skip_backup:
+            return backup_confirm()
+        proposed["backup_policy"] = (
+            "User explicitly declined Samsung backup; local state journal only"
+        )
+        return (
+            typer.prompt("No Samsung backup will be claimed. Type 'SKIP BACKUP' to accept")
+            == "SKIP BACKUP"
+        )
+
+    path = execute(ADB(device), STATE, proposed, approve_change, confirm_backup)
     console.print(
         f"Session saved: {path}. Test features using docs/SAFETY.md before continuing.",
         markup=False,
@@ -301,6 +318,60 @@ def network(
     if export_blocklist:
         path.with_suffix(".adguard.txt").write_text(blocklist(data), encoding="utf-8")
         console.print("Review before importing; test essential features and retain an undo copy.")
+
+
+@app.command()
+def dns_plan(device: Device):
+    """Preview AdGuard Private DNS; first check for existing router/phone DNS filters."""
+    from . import dns
+
+    proposed = dns.plan(ADB(device))
+    show(proposed)
+    write(proposed, "dns-plans")
+    console.print(
+        "No changes. Private DNS can bypass router DNS rules; requires explicit approval."
+    )
+
+
+@app.command()
+def dns_apply(device: Device, plan_file: Path):
+    """Apply DNS only after consent; save exact previous values before changing either key."""
+    from . import dns
+
+    proposed = read(plan_file)
+    show(proposed)
+
+    def approve(data):
+        return (
+            typer.prompt("After checking existing DNS filters, type 'USE ADGUARD DNS'")
+            == "USE ADGUARD DNS"
+        )
+
+    path = dns.apply(ADB(device), STATE, proposed, approve)
+    console.print(
+        f"Private DNS session: {path}. Run dns-status to check runtime validation.", markup=False
+    )
+
+
+@app.command()
+def dns_status(device: Device):
+    """Read settings and observed per-network TLS validation; no anonymity claim."""
+    from . import dns
+
+    show(dns.status(ADB(device)))
+
+
+@app.command()
+def dns_restore(device: Device, session: Annotated[Path, typer.Option("--session")]):
+    """Restore exact previous DNS settings, including absent values."""
+    from . import dns
+
+    def approve(data):
+        show(data["previous"])
+        return typer.confirm("Restore these previous DNS settings?", default=False)
+
+    dns.restore(ADB(device), STATE, session, approve)
+    console.print("Exact previous DNS settings restored and verified.")
 
 
 @app.command()

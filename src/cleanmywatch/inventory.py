@@ -10,10 +10,25 @@ from .telemetry import REVIEW_CATALOG
 
 CATALOG = json.loads(files("cleanmywatch").joinpath("profiles.json").read_text(encoding="utf-8"))
 
+# Exact opt-in exceptions, never a blanket permission for system packages.
+EXPERIMENTAL_SYSTEM = frozenset(
+    {
+        "com.sec.android.diagmonagent",
+        "com.android.adservices.api",
+        "com.samsung.android.gallery.watch",
+        "com.samsung.android.app.reminder",
+    }
+)
+
 
 def classification(package: str) -> dict:
     if package in CATALOG["packages"]:
-        return {"package": package, **CATALOG["packages"][package], "action": "review only"}
+        action = (
+            "protected"
+            if package in {"com.sec.android.diagmonagent", "com.android.adservices.api"}
+            else "review only"
+        )
+        return {"package": package, **CATALOG["packages"][package], "action": action}
     if package in REVIEW_CATALOG:
         item = REVIEW_CATALOG[package]
         return dict(
@@ -55,13 +70,26 @@ def classification(package: str) -> dict:
     )
 
 
-def eligible(adb, package: str) -> None:
+def eligible(adb, package: str, experimental_system: bool = False) -> None:
     package_name(package)
     protect(package)
     if package not in CATALOG["packages"]:
         raise SafetyError("Unknown/core package: modifications are prohibited")
+    if (
+        package in {"com.sec.android.diagmonagent", "com.android.adservices.api"}
+        and not experimental_system
+    ):
+        raise SafetyError("Diagnostics/advertising package requires experimental-system opt-in")
     info = adb.details(package)
     flags = re.search(r"^\s*(?:pkgFlags|flags)=\[([^\]]*)\]", info, re.MULTILINE)
+    if experimental_system and package in EXPERIMENTAL_SYSTEM:
+        if not flags or not re.search(
+            r"\bcodePath=/(?:system|product|system_ext|data/app|apex)/", info
+        ):
+            raise SafetyError("Unrecognized experimental package metadata")
+        if re.search(r"^\s*libraryNames=", info, re.MULTILINE):
+            raise SafetyError("Shared-library provider requires separate dependency review")
+        return
     if not flags or any(flag in flags[1].split() for flag in ("SYSTEM", "UPDATED_SYSTEM_APP")):
         raise SafetyError("System/preloaded or unrecognized package flags; protected")
     if not re.search(r"\bcodePath=/data/app/", info):

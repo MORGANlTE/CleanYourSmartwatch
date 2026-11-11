@@ -1,6 +1,6 @@
 # Safety and recovery
 
-There is no guarantee of harmlessness. Read-only inventory has been tested on one Watch4 LTE; disable and rollback have no physical-watch validation. Use one optional app per session and review local metadata and dependencies before approval. A non-system flag is a guard, not proof that an app is unnecessary.
+There is no guarantee of harmlessness. Read-only inventory has been tested on one Watch4 LTE; package state readbacks do not certify physical-watch functional safety or rollback. Use one optional app per session and review local metadata and dependencies before approval. A non-system flag is a guard, not proof that an app is unnecessary.
 
 ## Two different backups
 
@@ -16,7 +16,7 @@ Keep `.cleanmywatch/` in this private checkout; make a private external copy of 
 
 Plans bind to a hash of the physical hardware serial and exact firmware. No raw hardware serial or watch address is saved by the package. Never publish the token; a hash remains a persistent identifier. Preflight rechecks all package states. Device identity and state are rechecked around each operation. These checks reduce wrong-target risk but cannot make several ADB calls an atomic hardware transaction.
 
-Apply requires interactive backup confirmation and individual exact app approval. A fresh inventory and durable journal are saved before mutation. Status is written as `pending` before issuing a command, so a dropped connection or interrupted process can be reconciled later. Successful exit code alone does not count: disabled enum and list are checked. Errors stop further changes. There is no automatic rollback that could hide a failed recovery.
+Apply requires interactive backup confirmation or an explicit `--skip-backup` waiver (`SKIP BACKUP`), and individual exact app approval. A waiver is recorded honestly and never described as a successful Samsung backup. A fresh inventory and durable journal are saved before mutation. Status is written as `pending` before issuing a command, so a dropped connection or interrupted process can be reconciled later. Successful exit code alone does not count: disabled enum and list are checked. Errors stop further changes. There is no automatic rollback that could hide a failed recovery.
 
 The local exclusive lock prevents two normal operations using the same state directory. Always use one checkout/state directory for a watch, never simultaneous raw ADB modifications. After a killed process, inspect sessions and confirm no toolkit process is running before deleting `.cleanmywatch/operation.lock` manually. Restore interrupted sessions before new work. Do not delete journals to clear an error.
 
@@ -43,3 +43,7 @@ All-sessions processes sessions newest first and stops at the first failure or d
 If firmware changed, **automatic apply and restore refuse**. Do not alter the journal's identity to bypass this. Verify the original physical watch and exact app role again, and review the printed `recovery` command with someone who understands the updated firmware. Those commands require a deliberate manual identity check.
 
 If ADB is unavailable, try re-enabling the app through the watch's Settings UI if that firmware offers it. A non-booting/unreachable device may need vendor support or a factory reset, with potential data/eSIM loss. Do not promise recovery from these snapshots. Never experiment on a watch you rely on as your only emergency or medical device.
+
+## Experimental privacy controls
+
+See [privacy controls](PRIVACY-CONTROLS.md). `--experimental-system` permits only exact reviewed exceptions, never Health/core/unknown packages. Shared system UIDs and APEX-hosted APKs are material risks. DNS changes use separate write-ahead journals, block additional applies until restored, bind to physical watch and firmware, and restore missing values by deletion. Verify each network transport; strict DNS can make a transport unusable if validation fails. Package restore does not undo DNS; use `dns-restore --session DNS_SESSION_JSON_PATH`.

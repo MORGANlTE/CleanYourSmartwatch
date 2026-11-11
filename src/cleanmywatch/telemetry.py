@@ -53,7 +53,7 @@ def review(adb):
                 "package": package,
                 **evidence,
                 "state": adb.state(package),
-                "action": "protected; no firmware-specific dependency safety evidence",
+                "action": "protected by default; exact experimental opt-in exists for DiagMonAgent only; firmware functional safety unverified",
                 "network_observation": "Not measured; package presence does not prove transmission",
                 "metadata": adb.details(package),
             }

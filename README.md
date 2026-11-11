@@ -1,8 +1,8 @@
 # CleanMyWatch
 
-Local-first Samsung Wear OS auditing, battery measurements, and reversible optional-app disabling.
+Local-first Samsung Wear OS cleanup, experimental diagnostics controls, and opt-in ad/tracker DNS filtering, with exact-state rollback.
 
-**This library, code, tests, and documentation are AI generated. They have not received an independent security review. Version 0.1 is experimental. Read-only inventory has been tested on one Watch4 LTE; package changes and rollback have not been hardware-tested.**
+**This library, code, tests, and documentation are AI generated. They have not received an independent security review. Version 0.1 is experimental. Package-state checks do not establish firmware safety. Independent functional validation of changes, rollback, fitness sync and networking remains incomplete.**
 
 Inspired by the backup / preview / approve / verify approach of [CleanYourTV](https://github.com/Gathin23/cleanyourtv/blob/main/PROMPT.md). Independently implemented; no TV package lists or scripts are used.
 
@@ -11,15 +11,15 @@ Inspired by the backup / preview / approve / verify approach of [CleanYourTV](ht
 - Explicit ADB device selection, wireless pairing and connection, Samsung Android watch detection.
 - Read-only package inventory and classification; local JSON and Markdown audit reports.
 - Dry-run profiles, exact previous-state snapshots, per-app approval, write-ahead recovery journals.
-- Preference-first review of Outlook, Gallery, Voice Recorder, Reminder and Samsung Global Goals, plus Spotify and Strava. Disable/restore is restricted to **separately user-installed catalog apps**, after local dependency review. System/preloaded variants remain blocked.
+- Preference-first review of Outlook, Gallery, Voice Recorder, Reminder, SmartThings and Samsung Global Goals, plus explicit Spotify/Strava selection. User-installed catalog apps are eligible by default. A small exact system-package allowlist requires `--experimental-system`; Health/core/unknown packages remain protected.
 - Read-only battery baseline/comparison and manual optimization guidance.
-- Offline DNS CSV analysis and optional AdGuard-format export from your own evidence-backed rules.
+- Active opt-in AdGuard Private DNS with exact old-setting recovery and per-network TLS status, plus offline DNS CSV analysis and optional rule export.
 - Evidence-labelled diagnostics review and explicit post-change package-state verification.
 - Rich keyboard menu: `cleanmywatch tui --device WATCH_SELECTOR`.
 
-**Samsung/Google diagnostics and telemetry debloating is deliberately unavailable until package dependencies and exact firmware behavior are validated.** Conservative, balanced and aggressive currently expose the same optional-app catalog. No profile selects any app automatically. Custom selection is limited to that catalog. Unknown packages stay protected. This release does not provide a one-click system debloater.
+**Privacy reduction is experimental, not a zero-telemetry or anonymity guarantee.** DiagMonAgent and the Android advertising API APK can be explicitly selected with `--experimental-system`. Gallery and Reminder system variants have the same opt-in requirement. Conservative, balanced and aggressive expose the same catalog and select nothing automatically. Fitness packages, phone sync, payments and essential services stay protected. See [privacy controls and fitness preservation](docs/PRIVACY-CONTROLS.md).
 
-No root, uninstall, bootloader changes, modem commands, silent settings writes, analytics, network scanning, or battery-life guarantees. LTE/eSIM, emergency services, Health, payment services, pairing, launcher/watch faces, notifications, updates, and all other system packages are protected by the default-deny policy.
+No root, uninstall, bootloader changes, modem commands, silent settings writes, analytics, network scanning, or battery-life guarantees. LTE/eSIM, emergency services, Health, payment services, pairing, launcher/watch faces, notifications, updates, and all system packages outside the exact experimental allowlist are protected by the default-deny policy.
 
 **Play Store and Google Play Services stay enabled.** Normal app installation and updates are preserved. Core-package guards remain in effect even if a profile is edited incorrectly.
 
@@ -27,9 +27,9 @@ No root, uninstall, bootloader changes, modem commands, silent settings writes, 
 
 | Watch family | Intended scope | Physical testing in this project |
 |---|---|---|
-| Galaxy Watch4 40mm LTE | Primary target | Read-only identification and audit passed; **disable/restore untested** |
-| Other Watch4 / Watch4 Classic variants | Primary Samsung Wear OS target; exact model/firmware detected | **Not yet tested** |
-| Other Samsung watches running Wear OS | Experimental read-only inventory; no firmware safety claim | **Not yet tested** |
+| Galaxy Watch4 40mm LTE | Primary target | Read-only identification and audit passed; **functional validation incomplete** |
+| Other Watch4 / Watch4 Classic variants | Primary Samsung Wear OS target; exact model/firmware detected | **Not independently validated** |
+| Other Samsung watches running Wear OS | Experimental read-only inventory; no firmware safety claim | **Not independently validated** |
 | Samsung Tizen watches (Watch3, Active2, older) | Unsupported | None |
 | Other Wear OS brands, Apple, Garmin, Fitbit | Unsupported in this release | None |
 
@@ -57,7 +57,7 @@ These are placeholders, not literal addresses. `WATCH_SELECTOR` is the exact fir
 
 ## Preview, approve, disable, restore
 
-Start with `cleanmywatch cleanup --device WATCH_SELECTOR`. It asks which apps to **keep**, defaults to keeping every app, explains consequences, and saves a dry-run proposal. Preloaded variants are clearly marked blocked; a candidate is not an executable change. Each user supplies their own preferences before any apply approval.
+Start with `cleanmywatch cleanup --device WATCH_SELECTOR`. It asks which apps to **keep**, defaults to keeping every app, explains consequences, and saves a dry-run proposal. Preloaded variants are clearly marked blocked; a candidate is not an executable change. Each user supplies their own preferences before any apply approval. Gallery disabling stops viewing/syncing pictures in Gallery; Reminder and SmartThings lose their own alerts/controls. These apps are not assumed unwanted.
 
 Only choose an app you do not use, after inspecting its local metadata, tiles, complications and role on your firmware. Sync any app data first. Example for a separately installed Spotify:
 
@@ -67,7 +67,7 @@ cleanmywatch plan --device WATCH_SELECTOR --profile conservative --package com.s
 cleanmywatch apply --device WATCH_SELECTOR PLAN_JSON_PATH
 ```
 
-Apply previews again, requires `BACKUP VERIFIED`, then requires the exact phrase `DISABLE com.spotify.music`. A generated ADB snapshot does **not** satisfy the Samsung backup requirement. There is no `--yes` bypass. Snapshot and journal files must be saved successfully before any change. Each disable is verified with package state and disabled-package inventory.
+Apply previews again, requires `BACKUP VERIFIED`, then requires the exact phrase `DISABLE com.spotify.music`. A generated ADB snapshot does **not** constitute a Samsung backup. If you explicitly choose to proceed without one, `apply --skip-backup` requires `SKIP BACKUP` and records an honest waiver. There is no `--yes` bypass and no bypass of per-package approval. Snapshot and journal files must be saved successfully before any change. Each disable is verified with package state and disabled-package inventory.
 
 Test watch features after each session before making another change. Stop at any regression. Restore uses the exact original state: `default-state` for 0, `enable` for 1.
 
@@ -90,13 +90,32 @@ Restore prompts before execution, binds to the physical device and firmware, and
 cleanmywatch telemetry --device WATCH_SELECTOR
 ```
 
-This read-only command checks a small documented catalog, reports exact installed identifiers and states locally, and saves private metadata for review. Samsung's package inventory identifies DiagMonAgent; community scripts supply additional, explicitly low-confidence candidates. Neither source establishes safe removal on current watch firmware. Catalog presence is not proof that data is being sent. System diagnostics remain protected.
+This read-only command checks a small documented catalog, reports exact installed identifiers and states locally, and saves private metadata for review. Samsung's package inventory identifies DiagMonAgent; community scripts supply additional, explicitly low-confidence candidates. Neither source establishes safe removal on current watch firmware. Catalog presence is not proof that data is being sent. Diagnostics remain protected by default; the two exact experimental candidates require explicit selection, metadata review and individual approval. This does not establish that disabling them is harmless.
 
 Review diagnostic-data consent in watch/Galaxy Wearable privacy or legal settings where available; menus vary. The toolkit does not guess undocumented settings keys. Review app/account consents separately and retain essential Health synchronization. No package-state check or DNS blocklist can certify that every telemetry path has been removed. See [comparison and limits](docs/REFERENCE-COMPARISON.md).
 
 **A package-state backup cannot restore deleted data, repair a boot loop or recreate an eSIM. No tool can promise that nothing will go wrong.** ADB rollback needs an accessible, authorized watch. Do not factory-reset to solve an optional-app issue before trying restore.
 
-## Battery and DNS
+## Active DNS filtering and experimental system controls
+
+Check for an existing router/phone DNS filter before using strict Private DNS: it can bypass those rules. AdGuard receives DNS queries. It blocks known ad/tracker domains, not every ad, tracking method or same-domain video ad.
+
+```text
+cleanmywatch dns-plan --device WATCH_SELECTOR
+cleanmywatch dns-apply --device WATCH_SELECTOR DNS_PLAN_JSON_PATH
+cleanmywatch dns-status --device WATCH_SELECTOR
+cleanmywatch dns-restore --device WATCH_SELECTOR DNS_SESSION_JSON_PATH
+
+# One experimental package per initial session; every apply still prompts.
+cleanmywatch plan --device WATCH_SELECTOR --profile custom --experimental-system --package com.sec.android.diagmonagent
+cleanmywatch apply --device WATCH_SELECTOR PLAN_JSON_PATH
+```
+
+The other experimental diagnostics/advertising candidate is `com.android.adservices.api`. No APEX module is uninstalled. DNS sessions live separately in `.cleanmywatch/dns-sessions/`; package restore does not restore DNS. Status distinguishes configured settings from per-network encrypted-DNS validation. Wi-Fi validation does not prove LTE or companion-phone proxy coverage. Failed validation can break connectivity; restore the exact saved values if functions regress.
+
+Keep Samsung Health, Health Monitor, Health Connect, sensors and phone pairing enabled. Cloud fitness synchronization can still transfer your fitness data by design. Test a new workout syncing to the phone before calling this working. [Details, consent toggles and limitations](docs/PRIVACY-CONTROLS.md) · [Maintainer file map](docs/REPO-CHANGES.md).
+
+## Battery and offline DNS analysis
 
 ```text
 cleanmywatch battery --device WATCH_SELECTOR --configuration "LTE auto; Wi-Fi on; AOD off"

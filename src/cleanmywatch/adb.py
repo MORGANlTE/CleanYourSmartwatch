@@ -95,9 +95,18 @@ class ADB:
 
     def state(self, package: str) -> int:
         text = self.details(package)
-        match = re.search(r"User 0:([^\r\n]*)", text)
-        state = re.search(r"\benabled=([0-4])\b", match[1]) if match else None
-        if not state or not re.search(r"\binstalled=true\b", match[1]):
+        # Updated system apps also dump an inactive factory copy. Its state is
+        # not the current package state; still reject duplicate active rows.
+        text = re.split(
+            r"^[ \t]*Hidden system packages:[ \t]*\r?$", text, maxsplit=1, flags=re.MULTILINE
+        )[0]
+        users = [
+            line
+            for line in re.findall(r"^[ \t]*User 0:([^\r\n]*)", text, re.MULTILINE)
+            if re.search(r"\binstalled=(?:true|false)\b", line)
+        ]
+        state = re.search(r"\benabled=([0-4])\b", users[0]) if len(users) == 1 else None
+        if not state or not re.search(r"\binstalled=true\b", users[0]):
             raise SafetyError("Cannot parse installed user-0 enabled state; refusing to guess")
         return int(state[1])
 

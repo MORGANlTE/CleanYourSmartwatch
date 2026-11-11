@@ -1,12 +1,56 @@
 {
   "schema": 1,
-  "version": "catalog-2",
+  "version": "catalog-3",
   "tested_firmware": [],
   "profiles": {
-    "conservative": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
-    "balanced": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
-    "aggressive": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"],
-    "custom": ["com.spotify.music", "com.strava", "com.microsoft.office.outlook", "com.samsung.android.gallery.watch", "com.samsung.android.wear.voicerecorder", "com.samsung.android.app.reminder", "com.samsung.sree"]
+    "conservative": [
+      "com.spotify.music",
+      "com.strava",
+      "com.microsoft.office.outlook",
+      "com.samsung.android.gallery.watch",
+      "com.samsung.android.wear.voicerecorder",
+      "com.samsung.android.app.reminder",
+      "com.samsung.sree",
+      "com.sec.android.diagmonagent",
+      "com.android.adservices.api",
+      "com.samsung.android.oneconnect"
+    ],
+    "balanced": [
+      "com.spotify.music",
+      "com.strava",
+      "com.microsoft.office.outlook",
+      "com.samsung.android.gallery.watch",
+      "com.samsung.android.wear.voicerecorder",
+      "com.samsung.android.app.reminder",
+      "com.samsung.sree",
+      "com.sec.android.diagmonagent",
+      "com.android.adservices.api",
+      "com.samsung.android.oneconnect"
+    ],
+    "aggressive": [
+      "com.spotify.music",
+      "com.strava",
+      "com.microsoft.office.outlook",
+      "com.samsung.android.gallery.watch",
+      "com.samsung.android.wear.voicerecorder",
+      "com.samsung.android.app.reminder",
+      "com.samsung.sree",
+      "com.sec.android.diagmonagent",
+      "com.android.adservices.api",
+      "com.samsung.android.oneconnect"
+    ],
+    "custom": [
+      "com.spotify.music",
+      "com.strava",
+      "com.microsoft.office.outlook",
+      "com.samsung.android.gallery.watch",
+      "com.samsung.android.wear.voicerecorder",
+      "com.samsung.android.app.reminder",
+      "com.samsung.sree",
+      "com.sec.android.diagmonagent",
+      "com.android.adservices.api",
+      "com.samsung.android.oneconnect"
+    ]
   },
   "packages": {
     "com.microsoft.office.outlook": {
@@ -77,6 +121,36 @@
       "dependencies": "May supply workout shortcuts, tiles and complications; review on this firmware",
       "consequences": "Strava recording and synchronization stop; sync activities before disabling",
       "reversibility": "Restore previous package enabled state; app data is not intentionally deleted",
+      "tested_firmware": []
+    },
+    "com.sec.android.diagmonagent": {
+      "purpose": "Samsung DiagMonAgent diagnostics",
+      "category": "Experimental diagnostics/advertising",
+      "confidence": "Identity reviewed; watch firmware functional safety unverified",
+      "evidence": "https://docs.samsungknox.com/CCMode/G970U1_P.pdf",
+      "dependencies": "Inspect local metadata and test essential watch functions",
+      "consequences": "Diagnostic collection/reporting and Samsung support diagnostics may stop; no claim that all telemetry is removed",
+      "reversibility": "Restore exact prior enabled state using session journal; ADB access required",
+      "tested_firmware": []
+    },
+    "com.android.adservices.api": {
+      "purpose": "Android advertising / Privacy Sandbox APIs",
+      "category": "Experimental diagnostics/advertising",
+      "confidence": "Identity reviewed; watch firmware functional safety unverified",
+      "evidence": "https://source.android.com/docs/core/ota/modular-system/adservices",
+      "dependencies": "Inspect local metadata and test essential watch functions",
+      "consequences": "Advertising API consumers may fail; does not remove all ads or tracking; APEX and SDK sandbox stay installed",
+      "reversibility": "Restore exact prior enabled state using session journal; ADB access required",
+      "tested_firmware": []
+    },
+    "com.samsung.android.oneconnect": {
+      "purpose": "SmartThings watch application",
+      "category": "Optional application",
+      "confidence": "Identity reviewed; watch firmware functional safety unverified",
+      "evidence": "https://play.google.com/store/apps/details?id=com.samsung.android.oneconnect",
+      "dependencies": "Inspect local metadata and test essential watch functions",
+      "consequences": "SmartThings smart-home controls, tiles and shortcuts become unavailable",
+      "reversibility": "Restore exact prior enabled state using session journal; ADB access required",
       "tested_firmware": []
     }
   }

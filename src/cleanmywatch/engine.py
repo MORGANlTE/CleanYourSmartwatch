@@ -13,7 +13,7 @@ def same_device(adb, identity: dict):
         raise SafetyError("Physical device or firmware differs; stopping")
 
 
-def plan(adb, profile: str, selected: list[str]) -> dict:
+def plan(adb, profile: str, selected: list[str], experimental_system: bool = False) -> dict:
     if profile not in CATALOG["profiles"]:
         raise SafetyError("Unknown profile")
     if len(selected) != len(set(selected)):
@@ -23,7 +23,7 @@ def plan(adb, profile: str, selected: list[str]) -> dict:
     for package in selected:
         if package not in CATALOG["profiles"][profile] or package not in data["packages"]:
             raise SafetyError("Package is absent or outside the reviewed optional-app catalog")
-        eligible(adb, package)
+        eligible(adb, package, experimental_system)
         previous = adb.state(package)
         if previous not in (0, 1):
             raise SafetyError("Selected app is already disabled or has an unsupported state")
@@ -34,6 +34,7 @@ def plan(adb, profile: str, selected: list[str]) -> dict:
         created=now(),
         catalog=CATALOG["version"],
         profile=profile,
+        experimental_system=experimental_system,
         identity=data["identity"],
         changes=changes,
         warning="UNTESTED ON HARDWARE. Local dependency review and backup required.",
@@ -47,6 +48,8 @@ def validate_changes(data):
     if data.get("schema") != 1 or not isinstance(changes, list):
         raise SafetyError("Unsupported plan/session schema")
     seen = set()
+    if type(data.get("experimental_system", False)) is not bool:
+        raise SafetyError("Experimental-system opt-in must be a boolean")
     for change in changes:
         if not isinstance(change, dict) or not isinstance(change.get("package"), str):
             raise SafetyError("Malformed package change")
@@ -80,7 +83,7 @@ def apply(adb, root: Path, proposed: dict, confirm, backup_confirm) -> Path | No
         same_device(adb, proposed["identity"])
         # Validate whole plan before first write to watch.
         for change in proposed["changes"]:
-            eligible(adb, change["package"])
+            eligible(adb, change["package"], proposed.get("experimental_system", False))
             if adb.state(change["package"]) != change["previous"]:
                 raise SafetyError("Package state drifted; generate a fresh plan")
         if not backup_confirm():
@@ -107,7 +110,7 @@ def apply(adb, root: Path, proposed: dict, confirm, backup_confirm) -> Path | No
         try:
             for change in journal["changes"]:
                 same_device(adb, journal["identity"])
-                eligible(adb, change["package"])
+                eligible(adb, change["package"], journal.get("experimental_system", False))
                 if adb.state(change["package"]) != change["previous"]:
                     raise SafetyError("Package state changed during apply")
                 change["status"] = "pending"  # Must reach disk BEFORE the command.
@@ -144,7 +147,7 @@ def restore(adb, root: Path, path: Path, confirm, only: str | None = None):
         if not changes:
             raise SafetyError("No outstanding changes selected in this session")
         for change in changes:
-            eligible(adb, change["package"])
+            eligible(adb, change["package"], journal.get("experimental_system", False))
             current = adb.state(change["package"])
             if current not in (3, change["previous"]):
                 raise SafetyError("Unexpected state drift during restore; inspect manually")
@@ -152,7 +155,7 @@ def restore(adb, root: Path, path: Path, confirm, only: str | None = None):
             raise SafetyError("Restore declined")
         for change in changes:
             same_device(adb, journal["identity"])
-            eligible(adb, change["package"])
+            eligible(adb, change["package"], journal.get("experimental_system", False))
             current = adb.state(change["package"])
             if current not in (3, change["previous"]):
                 raise SafetyError("Package state changed during restore")

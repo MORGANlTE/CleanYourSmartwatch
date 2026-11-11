@@ -1,6 +1,6 @@
 # Network privacy guidance
 
-Non-root ADB inventory is not a packet trace. Package names and vendor ownership do not establish spyware or prove data transmission. The toolkit reads only selected network settings (Private DNS mode and Wi-Fi state); it does not read Wi-Fi credentials or enumerate accounts. It does not intercept TLS, install a VPN, configure a proxy or alter Private DNS.
+Non-root ADB inventory is not a packet trace. Package names and vendor ownership do not establish spyware or prove data transmission. The audit reads selected network settings without changing them. Explicit `dns-plan`, `dns-apply`, `dns-status` and `dns-restore` commands add opt-in AdGuard Private DNS with exact old-setting recovery. Status extracts per-network validation from connectivity metadata without saving the full dump. It does not intercept TLS, install a VPN, configure a proxy, read Wi-Fi credentials or enumerate accounts. See [active DNS controls](PRIVACY-CONTROLS.md).
 
 Before adding a DNS filter, check whether your router already uses Pi-hole, AdGuard Home, domain-based VPN routing or another resolver policy. Watch-level encrypted DNS can bypass those rules. Companion-phone forwarding may make traffic appear to come from the phone. Filter logs must be scoped by client, and even that may not prove the originating app/watch. Consult your router/filter documentation and keep an undo copy of existing configuration.
 

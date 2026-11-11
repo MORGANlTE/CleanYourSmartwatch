@@ -5,6 +5,10 @@ from .engine import plan
 from .inventory import eligible
 
 OPTIONAL_APPS = {
+    "com.samsung.android.oneconnect": (
+        "SmartThings",
+        "Smart-home controls, tiles and shortcuts",
+    ),
     "com.microsoft.office.outlook": (
         "Outlook",
         "Mail/calendar, related notifications, tiles and complications",
